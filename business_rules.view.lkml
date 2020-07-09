@@ -1,6 +1,8 @@
 view: business_rules {
   derived_table: {
-    sql: SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
+    sql: SELECT * FROM (
+
+SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
         CASE WHEN age_25_flag > 0 then 1 else 0 end as age_25_flag,
         CASE WHEN age_80_flag > 0 then 1 else 0 end as age_80_flag,
         cov.rct_modelnumber,
@@ -123,6 +125,12 @@ CASE WHEN age_80_flag > 0 then 1 else 0 end,
 cov.rct_modelnumber,
 CASE WHEN cov.business_purpose = 'CrossQuote' THEN 'XQ' WHEN cov.business_purpose = 'Renewal' and hour(cov.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END,
 rct_mi_13
+
+
+) a WHERE quote_date IS NOT NULL
+
+
+
 
      ;;
   }
