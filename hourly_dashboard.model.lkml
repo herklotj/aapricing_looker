@@ -11,3 +11,4 @@ datagroup: hourly_dashboard_default_datagroup {
 persist_with: hourly_dashboard_default_datagroup
 
 explore: hourly_mi {}
+explore: business_rules {}
