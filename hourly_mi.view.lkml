@@ -23,7 +23,7 @@ view: hourly_mi {
         LEFT JOIN qs_mi_outputs m
           on c.quote_id = m.quote_id
         WHERE c.quote_dttm < sysdate and months_between(to_date(sysdate),c.quote_dttm) <= 3
-          /*and c.motor_transaction_type = 'NewBusiness' and c.business_purpose = ''*/
+          and c.motor_transaction_type = 'NewBusiness' and c.business_purpose = ''
           and c.business_purpose != 'Marketing'
      ;;
  }
