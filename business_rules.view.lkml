@@ -8,6 +8,7 @@ SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
         cov.rct_modelnumber,
         CASE WHEN cov.business_purpose = 'CrossQuote' THEN 'XQ' WHEN cov.business_purpose = 'Renewal' and hour(cov.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END AS quote_type,
         rct_mi_13 as scheme,
+        Member_Score_Band,
         COUNT(*) AS Quotes,
         SUM(cov.rct_noquote_an) AS No_Quotes,
         SUM(CASE WHEN rr.radar_no_bus_rules_failed > 0 THEN 1 ELSE 0 END) AS Refer_Count,
@@ -101,7 +102,10 @@ SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
                      rct_modelnumber,
                      rct_noquote_an,
                      motor_transaction_type,
-                     business_purpose
+                     business_purpose,
+                    case  when member_score_unbanded > 0 and member_score_unbanded < 1.1 then '<1.1'
+                          when member_score_unbanded >= 1.1 then '>=1.1'
+                          else 'Non Score' end as Member_Score_Band
               FROM actian.qs_cover
               WHERE to_date(SYSDATE) - to_date(quote_dttm) <= 7
               AND   to_date(SYSDATE) - to_date(quote_dttm) >= 0) cov ON rr.quote_id = cov.quote_id
@@ -124,7 +128,8 @@ CASE WHEN age_25_flag > 0 then 1 else 0 end,
 CASE WHEN age_80_flag > 0 then 1 else 0 end,
 cov.rct_modelnumber,
 CASE WHEN cov.business_purpose = 'CrossQuote' THEN 'XQ' WHEN cov.business_purpose = 'Renewal' and hour(cov.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END,
-rct_mi_13
+rct_mi_13,
+Member_Score_Band
 
 
 ) a WHERE quote_date IS NOT NULL
@@ -164,6 +169,11 @@ rct_mi_13
   dimension: scheme{
     type: string
     sql:  scheme ;;
+  }
+
+  dimension:Member_Score_Band {
+    type: string
+    sql: Member_Score_Band ;;
   }
 
   measure: quotes {
