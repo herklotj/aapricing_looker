@@ -1,16 +1,15 @@
 view: business_rules {
   derived_table: {
-    sql: SELECT * FROM (
-
-SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
-        CASE WHEN age_25_flag > 0 then 1 else 0 end as age_25_flag,
-        CASE WHEN age_80_flag > 0 then 1 else 0 end as age_80_flag,
-        cov.rct_modelnumber,
-        CASE WHEN cov.business_purpose = 'CrossQuote' THEN 'XQ' WHEN cov.business_purpose = 'Renewal' and hour(cov.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END AS quote_type,
+    sql: SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
+        rct_modelnumber,
+        CASE WHEN business_purpose = 'CrossQuote' THEN 'XQ' WHEN business_purpose = 'Renewal' and hour(quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END AS quote_type,
         rct_mi_13 as scheme,
+        Member_Score_Band,
+        CASE WHEN min_age < 25 then 1 else 0 end as age_25_flag,
+        CASE WHEN min_age > 79 then 1 else 0 end as age_80plus_flag,
         COUNT(*) AS Quotes,
-        SUM(cov.rct_noquote_an) AS No_Quotes,
-        SUM(CASE WHEN rr.radar_no_bus_rules_failed > 0 THEN 1 ELSE 0 END) AS Refer_Count,
+        SUM(rct_noquote_an) AS No_Quotes,
+        SUM(CASE WHEN radar_no_bus_rules_failed > 0 THEN 1 ELSE 0 END) AS Refer_Count,
         SUM(rct_br001_covertype) AS rct_br001_covertype,
         SUM(rct_br002_piratedarea) AS rct_br002_piratedarea,
         SUM(rct_br003_postalsector) AS rct_br003_postalsector,
@@ -83,51 +82,59 @@ SELECT  CAST(cov.quote_dttm AS DATE) AS Quote_Date,
         SUM(rct_br71_placeholder_01) AS rct_br71_placeholder_01,
         SUM(rct_br72_placeholder_02) AS rct_br72_placeholder_02,
         SUM(rct_br73_placeholder_03) AS rct_br73_placeholder_03,
-        SUM(rct_br74_placeholder_04) AS rct_br74_placeholder_04
+        SUM(rct_br74_placeholder_04) AS rct_br74_placeholder_04,
+        SUM(rct_br75_placeholder_05) AS rct_br75_placeholder_05,
+        SUM(rct_br76_placeholder_06) AS rct_br76_placeholder_06,
+        SUM(rct_br77_placeholder_07) AS rct_br77_placeholder_07,
+        SUM(rct_br78_placeholder_08) AS rct_br78_placeholder_08,
+        SUM(rct_br79_placeholder_09) AS rct_br79_placeholder_09,
+        SUM(rct_br80_placeholder_10) AS rct_br80_placeholder_10
+
+ FROM (
 
 
- FROM (SELECT *
-       FROM actian.qs_radar_return
-       WHERE to_date(SYSDATE) - to_date(quote_dttm) <= 7
-       AND   to_date(SYSDATE) - to_date(quote_dttm) >= 0) rr
+SELECT rr.*,
+c.quote_id,
+c.cover_start_dt,
+c.quote_dttm,
+c.customer_key,
+c.provenance_code,
+c.member_score_unbanded,
+c.rct_modelnumber,
+c.rct_noquote_an,
+c.motor_transaction_type,
+c.business_purpose,
+case when member_score_unbanded > 0 and member_score_unbanded < 1.1 then '<1.1'
+when member_score_unbanded >= 1.1 then '>=1.1'
+else 'Non Score' end as Member_Score_Band,
+rct_mi_13,
 
+LEAST ( ( CASE WHEN d1.birth_dt IS NULL then NULL ELSE int( Months_between(c.cover_start_dt, d1.birth_dt) / 12 ) end ),
+      ( CASE WHEN d2.birth_dt IS NULL then NULL ELSE int( Months_between(c.cover_start_dt, d2.birth_dt) / 12 ) end ),
+      ( CASE WHEN d3.birth_dt IS NULL then NULL ELSE int( Months_between(c.cover_start_dt, d3.birth_dt) / 12 ) end ),
+      ( CASE WHEN d4.birth_dt IS NULL then NULL ELSE int( Months_between(c.cover_start_dt, d4.birth_dt) / 12 ) end )   ) as min_age
 
-   LEFT JOIN (SELECT quote_id,
-                     cover_start_dt,
-                     quote_dttm,
-                     customer_key,
-                     provenance_code,
-                     member_score_unbanded,
-                     rct_modelnumber,
-                     rct_noquote_an,
-                     motor_transaction_type,
-                     business_purpose
-              FROM actian.qs_cover
-              WHERE to_date(SYSDATE) - to_date(quote_dttm) <= 7
-              AND   to_date(SYSDATE) - to_date(quote_dttm) >= 0) cov ON rr.quote_id = cov.quote_id
+FROM actian.qs_radar_return rr
+JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(SYSDATE) - to_date(rr.quote_dttm) <= 7 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 0
 
+INNER JOIN qs_drivers d1 on rr.quote_id = d1.quote_id AND d1.driver_id = 0
+LEFT JOIN qs_mi_outputs mi ON rr.quote_id = mi.quote_id
 
-   LEFT JOIN actian.qs_mi_outputs mi ON rr.quote_id = mi.quote_id
+LEFT JOIN qs_drivers d2 ON rr.quote_id = d2.quote_id AND d2.driver_id = 1
+LEFT JOIN qs_drivers d3 ON rr.quote_id = d3.quote_id AND d3.driver_id = 2
+LEFT JOIN qs_drivers d4 ON rr.quote_id = d4.quote_id AND d4.driver_id = 3
 
-   LEFT JOIN   (SELECT quote_id, sum(age_25_flag) as age_25_flag, sum(age_80_flag) as age_80_flag
-               FROM
-               (SELECT d.quote_id, birth_dt, case when timestampdiff (YEAR,birth_dt,cover_start_dt) < 25 then 1 else 0 end as age_25_flag, case when timestampdiff (YEAR,birth_dt,cover_start_dt) > 80 then 1 else 0 end as age_80_flag
-               FROM qs_drivers d
-               JOIN (SELECT quote_id, cover_start_dt FROM qs_cover WHERE to_date(SYSDATE) - to_date(quote_dttm) <= 7 AND to_date(SYSDATE) - to_date(quote_dttm) >= 0) c
-               ON d.quote_id = c.quote_id) a
-               GROUP BY quote_id) da ON rr.quote_id = da.quote_id
+) a
 
 
 GROUP BY
-CAST(cov.quote_dttm AS DATE),
-CASE WHEN age_25_flag > 0 then 1 else 0 end,
-CASE WHEN age_80_flag > 0 then 1 else 0 end,
-cov.rct_modelnumber,
-CASE WHEN cov.business_purpose = 'CrossQuote' THEN 'XQ' WHEN cov.business_purpose = 'Renewal' and hour(cov.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END,
-rct_mi_13
-
-
-) a WHERE quote_date IS NOT NULL
+CAST(quote_dttm AS DATE),
+rct_modelnumber,
+CASE WHEN business_purpose = 'CrossQuote' THEN 'XQ' WHEN business_purpose = 'Renewal' and hour(quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END,
+rct_mi_13,
+Member_Score_Band,
+CASE WHEN min_age < 25 then 1 else 0 end,
+CASE WHEN min_age > 79 then 1 else 0 end
 
 
 
@@ -146,9 +153,9 @@ rct_mi_13
     sql:  age_25_flag ;;
   }
 
-  dimension: age_80_flag{
+  dimension: age_80plus_flag{
     type: string
-    sql:  age_80_flag ;;
+    sql:  age_80plus_flag ;;
   }
 
   dimension: rct_modelnumber{
@@ -647,6 +654,48 @@ rct_mi_13
   measure: rct_br74_placeholder_04 {
     type: number
     sql: sum(rct_br74_placeholder_04);;
+
+  }
+
+
+  measure: rct_br75_placeholder_05 {
+    type: number
+    sql: sum(rct_br75_placeholder_05);;
+
+  }
+
+
+  measure: rct_br76_placeholder_06 {
+    type: number
+    sql: sum(rct_br76_placeholder_06);;
+
+  }
+
+
+
+  measure: rct_br77_placeholder_07 {
+    type: number
+    sql: sum(rct_br77_placeholder_07);;
+
+  }
+
+
+  measure: rct_br78_placeholder_08 {
+    type: number
+    sql: sum(rct_br78_placeholder_08);;
+
+  }
+
+  measure: rct_br79_placeholder_09 {
+    type: number
+    sql: sum(rct_br79_placeholder_09);;
+
+  }
+
+
+  measure: rct_br80_placeholder_10 {
+    type: number
+    sql: sum(rct_br80_placeholder_10);;
 
   }
 
