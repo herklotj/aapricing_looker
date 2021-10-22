@@ -1,6 +1,8 @@
 view: business_rules {
   derived_table: {
-    sql: SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
+    sql:
+
+SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
         rct_modelnumber,
         CASE WHEN business_purpose = 'CrossQuote' THEN 'XQ' WHEN business_purpose = 'Renewal' and hour(quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END AS quote_type,
         rct_mi_13 as scheme,
@@ -171,6 +173,11 @@ CASE WHEN min_age > 79 then 1 else 0 end
   dimension: scheme{
     type: string
     sql:  scheme ;;
+  }
+
+  dimension:Member_Score_Band {
+    type: string
+    sql: Member_Score_Band ;;
   }
 
   measure: quotes {
