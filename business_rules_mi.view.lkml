@@ -81,5 +81,19 @@ rct_mi_13
   }
 
 
+  measure: total_declines {
+    type: number
+    sql: sum(No_Quotes);;
+
+  }
+
+
+  measure: total_quotes {
+    type: number
+    sql: sum(Quotes);;
+
+  }
+
+
 
 }
