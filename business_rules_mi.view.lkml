@@ -26,7 +26,7 @@ rct_mi_13
 
 
 FROM actian.qs_radar_return rr
-JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(SYSDATE) - to_date(rr.quote_dttm) <= 7 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 0
+JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(SYSDATE) - to_date(rr.quote_dttm) <= 7 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1
 JOIN qs_mi_outputs mi ON rr.quote_id = mi.quote_id
 
 WHERE rct_mi_13 = '103' AND
