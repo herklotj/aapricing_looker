@@ -1,6 +1,6 @@
 view: hourly_mi {
- derived_table: {
-   sql: SELECT
+  derived_table: {
+    sql: SELECT
           c.quote_id,
           c.quote_dttm,
           c.marginpricetest_indicator_desc,
@@ -26,7 +26,7 @@ view: hourly_mi {
           and c.motor_transaction_type = 'NewBusiness' and c.business_purpose = ''
           and c.business_purpose != 'Marketing'
      ;;
- }
+  }
 
   dimension_group: quote {
     type: time

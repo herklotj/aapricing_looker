@@ -13,3 +13,4 @@ persist_with: hourly_dashboard_default_datagroup
 explore: hourly_mi {}
 explore: business_rules {}
 explore: business_rules_mi {}
+explore: business_rules_quotability {}

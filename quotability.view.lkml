@@ -1,0 +1,94 @@
+view: business_rules_quotability {
+  derived_table: {
+    sql:
+SELECT  concat(  year(quote_dttm), '-', month(quote_dttm), '-', '01' ) AS Quote_Month,
+        rct_mi_13 as scheme,
+        COUNT(*) AS Quotes,
+        SUM(rct_noquote_an) AS No_Quotes
+
+
+FROM (
+
+
+SELECT rr.*,
+c.quote_id,
+c.cover_start_dt,
+c.quote_dttm,
+c.customer_key,
+c.provenance_code,
+c.member_score_unbanded,
+c.rct_modelnumber,
+c.rct_noquote_an,
+c.motor_transaction_type,
+c.business_purpose,
+rct_mi_13
+
+
+FROM actian.qs_radar_return rr
+JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(SYSDATE) - to_date(rr.quote_dttm) <= 365 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1
+JOIN qs_mi_outputs mi ON rr.quote_id = mi.quote_id
+
+WHERE
+(CASE WHEN business_purpose = 'CrossQuote' THEN 'XQ' WHEN business_purpose = 'Renewal' and hour(rr.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END) = 'NB'
+
+) a
+
+
+GROUP BY
+concat(  year(quote_dttm), '-', month(quote_dttm), '-', '01' ),
+rct_mi_13
+
+
+            ;;
+  }
+
+
+  dimension: quote_month{
+    type: date_month
+    sql:  quote_month ;;
+  }
+
+  dimension: scheme{
+    type: string
+    sql:  scheme ;;
+  }
+
+
+  measure: quotes {
+    type: number
+    sql: sum(quotes);;
+
+  }
+
+  measure: no_quotes {
+    type: number
+    sql: sum(no_quotes);;
+
+  }
+
+
+  measure: quotability_min {
+    type: number
+    sql: 1 - (no_quotes *1.000 / Quotes * 1.000);;
+
+  }
+
+
+
+
+  measure: total_declines {
+    type: number
+    sql: sum(No_Quotes);;
+
+  }
+
+
+  measure: total_quotes {
+    type: number
+    sql: sum(Quotes);;
+
+  }
+
+
+
+}
