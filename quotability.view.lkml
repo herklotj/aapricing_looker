@@ -32,7 +32,7 @@ LEAST ( ( CASE WHEN d1.birth_dt IS NULL then NULL ELSE int( Months_between(c.cov
 
 
 FROM actian.qs_radar_return rr
-JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(SYSDATE) - to_date(rr.quote_dttm) <= 365 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1
+JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(rr.quote_dttm) >= '2020-01-01' /*to_date(SYSDATE) - to_date(rr.quote_dttm) <= 365 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1*/
 JOIN qs_mi_outputs mi ON rr.quote_id = mi.quote_id
 JOIN qs_drivers d1 on c.quote_id = d1.quote_id AND d1.driver_id = 0
 LEFT JOIN qs_drivers d2 ON c.quote_id = d2.quote_id AND d2.driver_id = 1
