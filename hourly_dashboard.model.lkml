@@ -1,4 +1,4 @@
-connection: "echo_actian"
+connection: "avalanche"
 
 # include all the views
 include: "*.view"
