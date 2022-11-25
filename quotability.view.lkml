@@ -31,13 +31,13 @@ LEAST ( ( CASE WHEN d1.birth_dt IS NULL then NULL ELSE int( Months_between(c.cov
       ( CASE WHEN d4.birth_dt IS NULL then NULL ELSE int( Months_between(c.cover_start_dt, d4.birth_dt) / 12 ) end )   ) as min_age
 
 
-FROM actian.qs_radar_return rr
-JOIN qs_cover c ON rr.quote_id = c.quote_id AND to_date(rr.quote_dttm) >= '2020-01-01' /*to_date(SYSDATE) - to_date(rr.quote_dttm) <= 365 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1*/
-JOIN qs_mi_outputs mi ON rr.quote_id = mi.quote_id
-JOIN qs_drivers d1 on c.quote_id = d1.quote_id AND d1.driver_id = 0
-LEFT JOIN qs_drivers d2 ON c.quote_id = d2.quote_id AND d2.driver_id = 1
-LEFT JOIN qs_drivers d3 ON c.quote_id = d3.quote_id AND d3.driver_id = 2
-LEFT JOIN qs_drivers d4 ON c.quote_id = d4.quote_id AND d4.driver_id = 3
+FROM dbuser.qs_radar_return rr
+JOIN dbuser.qs_cover c ON rr.quote_id = c.quote_id AND to_date(rr.quote_dttm) >= '2020-01-01' /*to_date(SYSDATE) - to_date(rr.quote_dttm) <= 365 AND to_date(SYSDATE) - to_date(rr.quote_dttm) >= 1*/
+JOIN dbuser.qs_mi_outputs mi ON rr.quote_id = mi.quote_id
+JOIN dbuser.qs_drivers d1 on c.quote_id = d1.quote_id AND d1.driver_id = 0
+LEFT JOIN dbuser.qs_drivers d2 ON c.quote_id = d2.quote_id AND d2.driver_id = 1
+LEFT JOIN dbuser.qs_drivers d3 ON c.quote_id = d3.quote_id AND d3.driver_id = 2
+LEFT JOIN dbuser.qs_drivers d4 ON c.quote_id = d4.quote_id AND d4.driver_id = 3
 
 WHERE
 (CASE WHEN business_purpose = 'CrossQuote' THEN 'XQ' WHEN business_purpose = 'Renewal' and hour(rr.quote_dttm) < 7 THEN 'RWL' WHEN motor_transaction_type = 'MidTermAdjustmen' THEN 'MTA' ELSE 'NB' END) = 'NB'
