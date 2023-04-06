@@ -49,7 +49,7 @@ SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
         SUM(rct_br035_policywsclaims) AS rct_br035_policywsclaims,
         SUM(rct_br036_policynonwsclaims) AS rct_br036_policynonwsclaims,
         SUM(rct_br037_policyclaimsandconvictions) AS rct_br037_policyclaimsandconvictions,
-        SUM(rct_br038_maximumpremium_ap) as rct_br038_maximumpremium_ap,
+        SUM(rct_br038_maximumpremium_an) as rct_br038_maximumpremium_an,
         SUM(rct_br039_vehicledecline) AS rct_br039_vehicledecline,
         SUM(rct_br040_fueltype) AS rct_br040_fueltype,
         SUM(rct_br041_excess) AS rct_br041_excess,
@@ -426,6 +426,12 @@ CASE WHEN min_age > 79 then 1 else 0 end
   measure: rct_br037_policyclaimsandconvictions {
     type: number
     sql: sum(rct_br037_policyclaimsandconvictions);;
+
+  }
+
+  measure: rct_br038_maximumpremium_an {
+    type: number
+    sql: sum(rct_br038_maximumpremium_an);;
 
   }
 
