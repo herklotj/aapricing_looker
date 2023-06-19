@@ -93,7 +93,7 @@ SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
         SUM(rct_br79_placeholder_09) AS rct_br79_placeholder_09,
         SUM(rct_br80_placeholder_10) AS rct_br80_placeholder_10
 
- FROM (
+ FROM
 
 
 aapricing.v_business_rules
