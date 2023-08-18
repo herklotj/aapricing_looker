@@ -91,7 +91,8 @@ SELECT  CAST(quote_dttm AS DATE) AS Quote_Date,
         SUM(rct_br77_placeholder_07) AS rct_br77_placeholder_07,
         SUM(rct_br78_placeholder_08) AS rct_br78_placeholder_08,
         SUM(rct_br79_placeholder_09) AS rct_br79_placeholder_09,
-        SUM(rct_br80_placeholder_10) AS rct_br80_placeholder_10
+        SUM(rct_br80_placeholder_10) AS rct_br80_placeholder_10,
+        SUM(rct_br81_placeholder_11) AS rct_br81_placeholder_11
 
  FROM
 
@@ -682,5 +683,10 @@ CASE WHEN min_age > 79 then 1 else 0 end
 
   }
 
+  measure: rct_br81_placeholder_11 {
+    type: number
+    sql: sum(rct_br81_placeholder_11);;
+
+  }
 
 }
