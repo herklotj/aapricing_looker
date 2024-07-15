@@ -1,4 +1,4 @@
-connection: "avalanche"
+connection: "av2"
 
 # include all the views
 include: "*.view"
